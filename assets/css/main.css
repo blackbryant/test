@@ -1,0 +1,50 @@
+:root {
+  --el-color-primary: #409eff;
+  --brand-blue: #3b82f6;
+  --light-blue: #f0f7ff;
+  --border-radius-base: 15px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Microsoft JhengHei', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+}
+
+.app-container {
+  padding: 2rem;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.section-card {
+  background: white;
+  border-radius: var(--border-radius-base);
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  height: 100%;
+}
+
+.cute-select .el-select__wrapper {
+  border-radius: 20px !important;
+}
+
+.rounded-tag {
+  border-radius: 20px;
+  padding: 8px 16px;
+  display: inline-block;
+  margin: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.rounded-tag:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}

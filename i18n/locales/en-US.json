@@ -1,0 +1,55 @@
+{
+  "app": {
+    "title": "Nano Banana Studio",
+    "subtitle": "AI Image Generation Platform"
+  },
+  "nav": {
+    "home": "Home",
+    "settings": "Settings"
+  },
+  "template": {
+    "title": "Template Area",
+    "categories": "Categories",
+    "general": "General",
+    "planning": "Planning",
+    "purchasing": "Purchasing",
+    "sales": "Sales",
+    "production": "Production",
+    "settings": "Category Settings",
+    "newCategory": "New Category",
+    "editTemplate": "Edit Template",
+    "apiSettings": "API Settings",
+    "geminiApi": "Gemini API Key"
+  },
+  "workspace": {
+    "title": "Workspace",
+    "promptInput": "Prompt Input",
+    "mainDescription": "Main Description",
+    "preview": "Prompt Preview",
+    "copy": "Copy",
+    "generate": "Generate",
+    "linkGemini": "Link to Gemini",
+    "linkChatGPT": "Link to ChatGPT",
+    "history": "History",
+    "resultImage": "Generated Result"
+  },
+  "vocabulary": {
+    "title": "Vocabulary Area",
+    "manage": "Manage Vocabulary",
+    "key": "Key",
+    "name": "Name",
+    "options": "Options",
+    "add": "Add Vocabulary",
+    "edit": "Edit",
+    "delete": "Delete",
+    "addOption": "Add Option"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "success": "Success",
+    "error": "Error",
+    "loading": "Loading..."
+  }
+}

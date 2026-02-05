@@ -1,0 +1,55 @@
+{
+  "app": {
+    "title": "Nano Banana Studio",
+    "subtitle": "AI 圖片生成平台"
+  },
+  "nav": {
+    "home": "首頁",
+    "settings": "設定"
+  },
+  "template": {
+    "title": "提示詞樣板區",
+    "categories": "分類",
+    "general": "一般",
+    "planning": "企劃",
+    "purchasing": "採購",
+    "sales": "業務",
+    "production": "生產",
+    "settings": "分類設定",
+    "newCategory": "新增分類",
+    "editTemplate": "編輯樣板",
+    "apiSettings": "API 設定",
+    "geminiApi": "Gemini API Key"
+  },
+  "workspace": {
+    "title": "核心作業區",
+    "promptInput": "提示詞輸入",
+    "mainDescription": "主要敘述",
+    "preview": "提示詞預覽",
+    "copy": "複製",
+    "generate": "開始生成",
+    "linkGemini": "連結 Gemini",
+    "linkChatGPT": "連結 ChatGPT",
+    "history": "歷史紀錄",
+    "resultImage": "生成結果"
+  },
+  "vocabulary": {
+    "title": "詞庫設定區",
+    "manage": "管理詞庫",
+    "key": "鍵值",
+    "name": "名稱",
+    "options": "選項",
+    "add": "新增詞庫",
+    "edit": "編輯",
+    "delete": "刪除",
+    "addOption": "新增選項"
+  },
+  "common": {
+    "save": "儲存",
+    "cancel": "取消",
+    "confirm": "確認",
+    "success": "成功",
+    "error": "錯誤",
+    "loading": "載入中..."
+  }
+}
