@@ -4,20 +4,40 @@
       <h2 class="text-xl font-bold text-blue-600">
         {{ t('vocabulary.title') }}
       </h2>
-      <el-button
-        type="primary"
-        size="small"
-        circle
-        @click="addNewVocabulary"
-      >
-        <el-icon><Plus /></el-icon>
-      </el-button>
+      <div class="flex gap-2">
+        <el-button
+          size="small"
+          circle
+          @click="isVisible = !isVisible"
+          :type="isVisible ? 'primary' : 'default'"
+        >
+          <el-icon><component :is="isVisible ? 'View' : 'Hide'" /></el-icon>
+        </el-button>
+        <el-button
+          type="primary"
+          size="small"
+          circle
+          @click="addNewVocabulary"
+        >
+          <el-icon><Plus /></el-icon>
+        </el-button>
+      </div>
+    </div>
+
+    <!-- 搜尋框 -->
+    <div v-show="isVisible" class="mb-4">
+      <el-input
+        v-model="searchQuery"
+        placeholder="搜尋詞庫..."
+        clearable
+        prefix-icon="Search"
+      />
     </div>
 
     <!-- 詞庫列表 -->
-    <div class="vocabulary-list space-y-4 max-h-[700px] overflow-y-auto">
+    <div v-show="isVisible" class="vocabulary-list space-y-4 max-h-[700px] overflow-y-auto">
       <div
-        v-for="vocab in vocabularyList"
+        v-for="vocab in filteredVocabularyList"
         :key="vocab.id"
         class="vocab-card border-2 border-dashed border-blue-300 rounded-xl p-4 bg-blue-50"
       >
@@ -163,7 +183,7 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, Edit, Delete } from '@element-plus/icons-vue'
+import { Plus, Edit, Delete, View, Hide, Search } from '@element-plus/icons-vue'
 import type { VocabularyItem } from '~/types'
 
 const { t } = useI18n()
@@ -178,6 +198,8 @@ const emit = defineEmits<{
   updateVocabulary: []
 }>()
 
+const isVisible = ref(true)
+const searchQuery = ref('')
 const showEditDialog = ref(false)
 const showAddOptionDialog = ref(false)
 const currentVocabId = ref<number | null>(null)
@@ -187,6 +209,20 @@ const editingVocab = ref<Partial<VocabularyItem>>({
   key: '',
   name: '',
   options: []
+})
+
+// 過濾詞庫列表
+const filteredVocabularyList = computed(() => {
+  if (!searchQuery.value.trim()) {
+    return props.vocabularyList
+  }
+  
+  const query = searchQuery.value.toLowerCase().trim()
+  return props.vocabularyList.filter(vocab => 
+    vocab.name.toLowerCase().includes(query) ||
+    vocab.key.toLowerCase().includes(query) ||
+    vocab.options.some(opt => opt.toLowerCase().includes(query))
+  )
 })
 
 // 新增詞庫

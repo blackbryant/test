@@ -28,6 +28,25 @@
         {{ t('workspace.promptInput') }}
       </h3>
       
+      <!-- 圖片顯示區域 -->
+      <div v-if="selectedTemplate?.images && selectedTemplate.images.length > 0" class="image-preview-area mb-4">
+        <h4 class="text-xs font-semibold text-gray-600 mb-2">參考圖片</h4>
+        <div class="flex gap-2 overflow-x-auto pb-2">
+          <div
+            v-for="(img, idx) in selectedTemplate.images"
+            :key="idx"
+            class="flex-shrink-0"
+          >
+            <img
+              :src="img"
+              :alt="`參考圖片 ${idx + 1}`"
+              class="w-24 h-24 object-cover rounded-lg shadow-md hover:scale-105 transition-transform cursor-pointer"
+              @click="viewImage(img)"
+            />
+          </div>
+        </div>
+      </div>
+      
       <!-- 樣板內容區域（帶下拉選單） -->
       <div class="template-content mb-4 p-3 bg-gray-50 rounded-lg">
         <div
@@ -229,12 +248,47 @@ if (process.client) {
   }
 }
 
-// 複製提示詞
+// 複製提示詞（包含圖片）
 const copyPrompt = async () => {
   try {
-    await navigator.clipboard.writeText(finalPrompt.value)
-    ElMessage.success('已複製到剪貼簿')
+    // 如果有圖片，嘗試複製 HTML 格式（文字+圖片）
+    if (props.selectedTemplate?.images && props.selectedTemplate.images.length > 0) {
+      try {
+        // 建立包含文字和圖片的 HTML 內容
+        let htmlContent = `<div style="font-family: Arial, sans-serif;">`
+        
+        // 添加提示詞文字
+        htmlContent += `<p style="margin-bottom: 10px; white-space: pre-wrap;">${finalPrompt.value.replace(/\n/g, '<br>')}</p>`
+        
+        // 添加圖片
+        htmlContent += `<div style="margin-top: 10px;">`
+        for (const imageUrl of props.selectedTemplate.images) {
+          htmlContent += `<img src="${imageUrl}" style="max-width: 500px; margin: 5px;" />`
+        }
+        htmlContent += `</div></div>`
+        
+        // 使用 ClipboardItem 複製 HTML 和純文字
+        const items: Record<string, Blob> = {
+          'text/html': new Blob([htmlContent], { type: 'text/html' }),
+          'text/plain': new Blob([finalPrompt.value], { type: 'text/plain' })
+        }
+        
+        await navigator.clipboard.write([new ClipboardItem(items)])
+        ElMessage.success('已複製提示詞和圖片到剪貼簿')
+      } catch (error) {
+        // 降級：只複製文字和圖片連結
+        console.warn('HTML 複製失敗，使用降級方案:', error)
+        const textWithLinks = finalPrompt.value + '\n\n參考圖片:\n' + props.selectedTemplate.images.join('\n')
+        await navigator.clipboard.writeText(textWithLinks)
+        ElMessage.success('已複製提示詞和圖片連結到剪貼簿')
+      }
+    } else {
+      // 沒有圖片，只複製文字
+      await navigator.clipboard.writeText(finalPrompt.value)
+      ElMessage.success('已複製到剪貼簿')
+    }
   } catch (error) {
+    console.error('複製失敗:', error)
     ElMessage.error('複製失敗')
   }
 }
@@ -291,6 +345,12 @@ const linkToChatGPT = () => {
 const viewHistoryItem = (item: GenerationHistory) => {
   generatedImageUrl.value = item.imageUrl
   ElMessage.info('已載入歷史記錄')
+}
+
+// 查看圖片
+const viewImage = (imageUrl: string) => {
+  // 在新視窗中打開圖片
+  window.open(imageUrl, '_blank')
 }
 
 // 格式化日期

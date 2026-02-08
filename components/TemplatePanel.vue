@@ -8,6 +8,14 @@
         <el-button
           circle
           size="small"
+          @click="isVisible = !isVisible"
+          :type="isVisible ? 'primary' : 'default'"
+        >
+          <el-icon><component :is="isVisible ? 'View' : 'Hide'" /></el-icon>
+        </el-button>
+        <el-button
+          circle
+          size="small"
           @click="showCategoryDialog = true"
         >
           <el-icon><Setting /></el-icon>
@@ -24,7 +32,7 @@
     </div>
 
     <!-- 分類標籤 -->
-    <div class="mb-4">
+    <div v-show="isVisible" class="mb-4">
       <div class="flex flex-wrap gap-2">
         <div
           v-for="category in categories"
@@ -42,8 +50,18 @@
       </div>
     </div>
 
+    <!-- 搜尋框 -->
+    <div v-show="isVisible" class="mb-4">
+      <el-input
+        v-model="searchQuery"
+        placeholder="搜尋樣板..."
+        clearable
+        prefix-icon="Search"
+      />
+    </div>
+
     <!-- 樣板列表 -->
-    <div class="template-list space-y-2 max-h-[600px] overflow-y-auto">
+    <div v-show="isVisible" class="template-list space-y-2 max-h-[600px] overflow-y-auto">
       <div
         v-for="template in filteredTemplates"
         :key="template.id"
@@ -250,6 +268,22 @@
             placeholder="使用 **{key}** 標示關鍵參數，例如：生成一張 **{style}** 風格的圖片"
           />
         </el-form-item>
+        <el-form-item label="上傳圖片">
+          <el-upload
+            v-model:file-list="uploadedImages"
+            :auto-upload="false"
+            :on-change="handleImageChange"
+            :on-remove="handleImageRemove"
+            multiple
+            list-type="picture-card"
+            accept="image/*"
+          >
+            <el-icon><Plus /></el-icon>
+          </el-upload>
+          <div class="text-xs text-gray-500 mt-1">
+            可上傳多張圖片作為參考（點擊 X 可刪除圖片）
+          </div>
+        </el-form-item>
         <el-alert
           type="info"
           :closable="false"
@@ -295,8 +329,9 @@
 </template>
 
 <script setup lang="ts">
-import { Setting, Key, Edit, Plus } from '@element-plus/icons-vue'
+import { Setting, Key, Edit, Plus, View, Hide, Search } from '@element-plus/icons-vue'
 import type { Template, Category } from '~/types'
+import type { UploadUserFile } from 'element-plus'
 
 const { t } = useI18n()
 
@@ -316,6 +351,8 @@ const emit = defineEmits<{
   deleteCategory: [categoryId: number]
 }>()
 
+const isVisible = ref(true)
+const searchQuery = ref('')
 const selectedCategory = ref<string>('全部')
 const selectedTemplateId = ref<number | null>(null)
 const showCategoryDialog = ref(false)
@@ -326,6 +363,7 @@ const geminiApiKey = ref('')
 const categoryTabActive = ref('new')
 const templateCategoryMap = ref<Record<number, string>>({})
 const availableVocabularyKeys = ref<string[]>([])
+const uploadedImages = ref<UploadUserFile[]>([])
 
 const editingTemplate = ref<Partial<Template>>({
   name: '',
@@ -336,10 +374,23 @@ const editingTemplate = ref<Partial<Template>>({
 // 過濾樣板
 const filteredTemplates = computed(() => {
   if (!props.templates) return []
-  if (selectedCategory.value === '全部') {
-    return props.templates
+  let filtered = props.templates
+  
+  // 依分類過濾
+  if (selectedCategory.value !== '全部') {
+    filtered = filtered.filter(t => t.category === selectedCategory.value)
   }
-  return props.templates.filter(t => t.category === selectedCategory.value)
+  
+  // 依搜尋詞過濾
+  if (searchQuery.value.trim()) {
+    const query = searchQuery.value.toLowerCase().trim()
+    filtered = filtered.filter(t => 
+      t.name.toLowerCase().includes(query) || 
+      t.content.toLowerCase().includes(query)
+    )
+  }
+  
+  return filtered
 })
 
 // 選擇分類
@@ -358,9 +409,68 @@ const formatTemplateContent = (content: string) => {
   return content.replace(/\*\*\{([^}]+)\}\*\*/g, '<strong class="text-blue-600">{$1}</strong>')
 }
 
+// 處理圖片變更
+const handleImageChange = async (file: any) => {
+  // 上傳圖片到伺服器
+  if (file.raw) {
+    const formData = new FormData()
+    formData.append('file', file.raw)
+    
+    try {
+      const response = await $fetch<{ success: boolean; paths: string[] }>('/api/upload-image', {
+        method: 'POST',
+        body: formData
+      })
+      
+      if (response.success && response.paths.length > 0) {
+        if (!editingTemplate.value.images) {
+          editingTemplate.value.images = []
+        }
+        editingTemplate.value.images.push(...response.paths)
+        ElMessage.success('圖片上傳成功')
+      }
+    } catch (error) {
+      console.error('圖片上傳失敗:', error)
+      ElMessage.error('圖片上傳失敗')
+    }
+  }
+}
+
+// 處理圖片刪除
+const handleImageRemove = (file: UploadUserFile) => {
+  try {
+    // 從 editingTemplate 的 images 陣列中移除對應的圖片 URL
+    if (editingTemplate.value.images && file.url) {
+      const index = editingTemplate.value.images.indexOf(file.url)
+      if (index > -1) {
+        editingTemplate.value.images.splice(index, 1)
+        ElMessage.success('圖片已從樣板中移除')
+      }
+    }
+    
+    // 同時從 uploadedImages 中移除
+    const uploadIndex = uploadedImages.value.findIndex(img => img.uid === file.uid)
+    if (uploadIndex > -1) {
+      uploadedImages.value.splice(uploadIndex, 1)
+    }
+  } catch (error) {
+    console.error('圖片刪除失敗:', error)
+    ElMessage.error('圖片刪除失敗')
+  }
+}
+
 // 編輯樣板
 const editTemplate = (template: Template) => {
-  editingTemplate.value = { ...template }
+  editingTemplate.value = { ...template, images: template.images ? [...template.images] : [] }
+  uploadedImages.value = []
+  // 載入已有的圖片路徑
+  if (template.images) {
+    uploadedImages.value = template.images.map((path, idx) => ({
+      uid: idx,
+      name: path.split('/').pop() || `image-${idx}`,
+      url: path
+    }))
+  }
   showEditDialog.value = true
 }
 
@@ -369,8 +479,10 @@ const addNewTemplate = () => {
   editingTemplate.value = {
     name: '',
     category: selectedCategory.value !== '全部' ? selectedCategory.value : props.categories[0]?.name || '',
-    content: ''
+    content: '',
+    images: []
   }
+  uploadedImages.value = []
   showEditDialog.value = true
 }
 

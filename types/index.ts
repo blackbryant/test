@@ -3,6 +3,7 @@ export interface Template {
   category: string
   name: string
   content: string
+  images?: string[] // 圖片路徑陣列
   createdAt: string
   updatedAt: string
 }

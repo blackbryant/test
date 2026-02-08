@@ -44,6 +44,7 @@ function initTables(db: Database.Database) {
       category TEXT NOT NULL,
       name TEXT NOT NULL,
       content TEXT NOT NULL,
+      images TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
     )
@@ -85,36 +86,36 @@ function initTables(db: Database.Database) {
   if (templateCount.count === 0) {
     // 插入預設樣板
     const insertTemplate = db.prepare(`
-      INSERT INTO templates (category, name, content, created_at, updated_at)
-      VALUES (?, ?, ?, datetime('now'), datetime('now'))
+      INSERT INTO templates (category, name, content, images, created_at, updated_at)
+      VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))
     `)
 
     // 一般分類
-    insertTemplate.run('一般', '基礎圖片生成', '生成一張 **{style}** 風格的圖片，主題是 **{subject}**，畫面要清晰明亮')
-    insertTemplate.run('一般', '藝術創作', '創作一幅 **{style}** 風格的藝術作品，描繪 **{subject}**，充滿創意與想像力')
-    insertTemplate.run('一般', '場景設計', '設計一個 **{subject}** 場景，採用 **{style}** 風格，氛圍要 **{mood}**')
+    insertTemplate.run('一般', '基礎圖片生成', '生成一張 **{style}** 風格的圖片，主題是 **{subject}**，畫面要清晰明亮', null)
+    insertTemplate.run('一般', '藝術創作', '創作一幅 **{style}** 風格的藝術作品，描繪 **{subject}**，充滿創意與想像力', null)
+    insertTemplate.run('一般', '場景設計', '設計一個 **{subject}** 場景，採用 **{style}** 風格，氛圍要 **{mood}**', null)
     
     // 企劃分類
-    insertTemplate.run('企劃', '產品概念圖', '為 **{product}** 設計一個 **{style}** 風格的概念圖，突出 **{feature}** 特色，適合提案使用')
-    insertTemplate.run('企劃', '品牌視覺', '設計 **{product}** 的品牌視覺形象，風格為 **{style}**，傳達 **{feature}** 的品牌理念')
-    insertTemplate.run('企劃', '使用情境圖', '展示 **{product}** 的使用情境，場景為 **{scene}**，氛圍 **{mood}**，真實自然')
+    insertTemplate.run('企劃', '產品概念圖', '為 **{product}** 設計一個 **{style}** 風格的概念圖，突出 **{feature}** 特色，適合提案使用', null)
+    insertTemplate.run('企劃', '品牌視覺', '設計 **{product}** 的品牌視覺形象，風格為 **{style}**，傳達 **{feature}** 的品牌理念', null)
+    insertTemplate.run('企劃', '使用情境圖', '展示 **{product}** 的使用情境，場景為 **{scene}**，氛圍 **{mood}**，真實自然', null)
     
     // 採購分類
-    insertTemplate.run('採購', '產品型錄圖', '製作 **{product}** 的產品型錄圖片，背景為 **{background}**，專業商業攝影風格')
-    insertTemplate.run('採購', '供應商簡報', '製作供應商簡報用圖，展示 **{product}**，風格 **{style}**，突出品質與價值')
-    insertTemplate.run('採購', '比價分析圖', '設計產品比較圖表，比較 **{product}** 的不同款式，清晰易懂的信息圖表風格')
+    insertTemplate.run('採購', '產品型錄圖', '製作 **{product}** 的產品型錄圖片，背景為 **{background}**，專業商業攝影風格', null)
+    insertTemplate.run('採購', '供應商簡報', '製作供應商簡報用圖，展示 **{product}**，風格 **{style}**，突出品質與價值', null)
+    insertTemplate.run('採購', '比價分析圖', '設計產品比較圖表，比較 **{product}** 的不同款式，清晰易懂的信息圖表風格', null)
     
     // 業務分類
-    insertTemplate.run('業務', '簡報封面', '製作一張專業的 **{theme}** 主題簡報封面，色調為 **{color}**，具有商業感與專業度')
-    insertTemplate.run('業務', '客戶提案圖', '為 **{theme}** 產業製作客戶提案用圖，風格 **{style}**，傳達專業與信任感')
-    insertTemplate.run('業務', '成功案例展示', '展示 **{theme}** 領域的成功案例，採用 **{style}** 風格，激勵人心')
-    insertTemplate.run('業務', '數據視覺化', '將 **{theme}** 的數據製作成視覺化圖表，採用 **{color}** 配色，清晰專業')
+    insertTemplate.run('業務', '簡報封面', '製作一張專業的 **{theme}** 主題簡報封面，色調為 **{color}**，具有商業感與專業度', null)
+    insertTemplate.run('業務', '客戶提案圖', '為 **{theme}** 產業製作客戶提案用圖，風格 **{style}**，傳達專業與信任感', null)
+    insertTemplate.run('業務', '成功案例展示', '展示 **{theme}** 領域的成功案例，採用 **{style}** 風格，激勵人心', null)
+    insertTemplate.run('業務', '數據視覺化', '將 **{theme}** 的數據製作成視覺化圖表，採用 **{color}** 配色，清晰專業', null)
     
     // 生產分類
-    insertTemplate.run('生產', '製程說明圖', '展示 **{product}** 的生產製程，風格為 **{style}**，清楚標示各個步驟')
-    insertTemplate.run('生產', '品質檢驗圖', '製作品質檢驗標準圖，檢驗項目為 **{feature}**，專業技術插圖風格')
-    insertTemplate.run('生產', '工廠環境圖', '呈現 **{product}** 生產線的工廠環境，氛圍 **{mood}**，整潔有序的現代化工廠')
-    insertTemplate.run('生產', '安全作業圖', '製作安全作業指導圖，說明 **{product}** 的安全操作流程，清晰的示意圖風格')
+    insertTemplate.run('生產', '製程說明圖', '展示 **{product}** 的生產製程，風格為 **{style}**，清楚標示各個步驟', null)
+    insertTemplate.run('生產', '品質檢驗圖', '製作品質檢驗標準圖，檢驗項目為 **{feature}**，專業技術插圖風格', null)
+    insertTemplate.run('生產', '工廠環境圖', '呈現 **{product}** 生產線的工廠環境，氛圍 **{mood}**，整潔有序的現代化工廠', null)
+    insertTemplate.run('生產', '安全作業圖', '製作安全作業指導圖，說明 **{product}** 的安全操作流程，清晰的示意圖風格', null)
   }
 
   const vocabCount = db.prepare('SELECT COUNT(*) as count FROM vocabulary').get() as { count: number }

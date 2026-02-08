@@ -4,12 +4,14 @@ export default defineEventHandler(async (event) => {
   const db = getDatabase()
   const body = await readBody(event)
 
+  const images = body.images ? JSON.stringify(body.images) : null
+
   const stmt = db.prepare(`
-    INSERT INTO templates (category, name, content, created_at, updated_at)
-    VALUES (?, ?, ?, datetime('now'), datetime('now'))
+    INSERT INTO templates (category, name, content, images, created_at, updated_at)
+    VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))
   `)
 
-  const result = stmt.run(body.category, body.name, body.content)
+  const result = stmt.run(body.category, body.name, body.content, images)
 
   return {
     id: result.lastInsertRowid,
