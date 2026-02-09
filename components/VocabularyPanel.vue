@@ -1,23 +1,23 @@
 <template>
-  <div class="section-card vocabulary-panel">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-xl font-bold text-blue-600">
+  <div class="modern-panel p-6 h-full flex flex-col">
+    <div class="panel-header mb-4">
+      <h2 class="text-xl font-bold" style="background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
         {{ t('vocabulary.title') }}
       </h2>
       <div class="flex gap-2">
         <el-button
           size="small"
           circle
-          @click="isVisible = !isVisible"
-          :type="isVisible ? 'primary' : 'default'"
+          @click="closeSidebar"
+          class="icon-btn"
         >
-          <el-icon><component :is="isVisible ? 'View' : 'Hide'" /></el-icon>
+          <el-icon><Close /></el-icon>
         </el-button>
         <el-button
-          type="primary"
           size="small"
           circle
           @click="addNewVocabulary"
+          class="add-vocab-btn"
         >
           <el-icon><Plus /></el-icon>
         </el-button>
@@ -25,21 +25,22 @@
     </div>
 
     <!-- 搜尋框 -->
-    <div v-show="isVisible" class="mb-4">
+    <div class="mb-4">
       <el-input
         v-model="searchQuery"
         placeholder="搜尋詞庫..."
         clearable
         prefix-icon="Search"
+        class="search-input"
       />
     </div>
 
     <!-- 詞庫列表 -->
-    <div v-show="isVisible" class="vocabulary-list space-y-4 max-h-[700px] overflow-y-auto">
+    <div class="vocabulary-list space-y-4 flex-1 overflow-y-auto">
       <div
         v-for="vocab in filteredVocabularyList"
         :key="vocab.id"
-        class="vocab-card border-2 border-dashed border-blue-300 rounded-xl p-4 bg-blue-50"
+        class="vocab-card"
       >
         <div class="flex justify-between items-start mb-3">
           <div class="flex-1">
@@ -183,7 +184,7 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, Edit, Delete, View, Hide, Search } from '@element-plus/icons-vue'
+import { Plus, Edit, Delete, Close, Search } from '@element-plus/icons-vue'
 import type { VocabularyItem } from '~/types'
 
 const { t } = useI18n()
@@ -196,9 +197,9 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   updateVocabulary: []
+  closeSidebar: []
 }>()
 
-const isVisible = ref(true)
 const searchQuery = ref('')
 const showEditDialog = ref(false)
 const showAddOptionDialog = ref(false)
@@ -224,6 +225,11 @@ const filteredVocabularyList = computed(() => {
     vocab.options.some(opt => opt.toLowerCase().includes(query))
   )
 })
+
+// 關閉 Sidebar
+const closeSidebar = () => {
+  emit('closeSidebar')
+}
 
 // 新增詞庫
 const addNewVocabulary = () => {
@@ -360,44 +366,119 @@ const removeOption = async (vocabId: number, optionIndex: number) => {
 </script>
 
 <style scoped>
-.vocabulary-panel {
-  border: 3px dashed #60a5fa;
+.modern-panel {
+  background: linear-gradient(to bottom, #ffffff, #fafbfc);
+  border: 1px solid #e8eaed;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.add-vocab-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.25);
+  transition: all 0.3s ease;
+}
+
+.add-vocab-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
+}
+
+.icon-btn {
+  border: 1px solid #e8eaed;
+  background: #ffffff;
+  color: #5f6368;
+  transition: all 0.2s ease;
+}
+
+.icon-btn:hover {
+  background: #f8f9fa;
+  border-color: #dadce0;
+}
+
+.search-input :deep(.el-input__wrapper) {
+  border-radius: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e8eaed;
+  transition: all 0.3s ease;
+}
+
+.search-input :deep(.el-input__wrapper:hover) {
+  border-color: #c6c9cc;
+}
+
+.search-input :deep(.el-input__wrapper.is-focus) {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .vocab-card {
-  animation: slideIn 0.3s ease-out;
-  transition: all 0.3s;
+  padding: 16px;
+  border: 1px solid #e8eaed;
+  border-radius: 12px;
+  background: #ffffff;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.25s ease;
+}
+
+.vocab-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 3px;
+  height: 100%;
+  background: linear-gradient(to bottom, #667eea, #764ba2);
+  opacity: 0;
+  transition: opacity 0.25s ease;
 }
 
 .vocab-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+  border-color: #c6c9cc;
+}
+
+.vocab-card:hover::before {
+  opacity: 1;
 }
 
 .vocabulary-list::-webkit-scrollbar {
   width: 6px;
 }
 
-.vocabulary-list::-webkit-scrollbar-thumb {
-  background: #60a5fa;
+.vocabulary-list::-webkit-scrollbar-track {
+  background: #f5f5f5;
   border-radius: 3px;
 }
 
-code {
-  font-family: 'Courier New', monospace;
-  font-size: 12px;
-  color: #3b82f6;
+.vocabulary-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #667eea, #764ba2);
+  border-radius: 3px;
+  transition: background 0.3s ease;
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+.vocabulary-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #5568d3, #6a42a0);
+}
+
+code {
+  background: #f0f3ff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #667eea;
+  font-weight: 500;
 }
 
 .options-tags {

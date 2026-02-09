@@ -56,6 +56,5 @@ npm run preview
 
 1. 整合真實的 AI 圖片生成 API（如 DALL-E, Midjourney, Stable Diffusion）
 2. 加入用戶認證系統
-3. 實作圖片上傳與管理
 4. 增加更多樣板分類
 5. 加入團隊協作功能

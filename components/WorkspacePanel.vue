@@ -1,21 +1,21 @@
 <template>
-  <div class="section-card bg-light-blue">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-xl font-bold text-gray-800">
+  <div class="modern-panel p-6 h-full flex flex-col">
+    <div class="panel-header mb-4">
+      <h2 class="text-xl font-bold" style="background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
         {{ t('workspace.title') }}
       </h2>
       <div class="flex gap-2">
         <el-button
-          type="primary"
           size="small"
           @click="linkToGemini"
+          class="link-btn"
         >
           🤖 {{ t('workspace.linkGemini') }}
         </el-button>
         <el-button
-          type="success"
           size="small"
           @click="linkToChatGPT"
+          class="link-btn"
         >
           💬 {{ t('workspace.linkChatGPT') }}
         </el-button>
@@ -23,7 +23,7 @@
     </div>
 
     <!-- Prompt 輸入看板 -->
-    <div class="prompt-editor bg-white p-4 rounded-xl mb-4 shadow-sm">
+    <div class="prompt-editor p-4 rounded-xl mb-4">
       <h3 class="text-sm font-semibold text-gray-700 mb-2">
         {{ t('workspace.promptInput') }}
       </h3>
@@ -75,7 +75,7 @@
     </div>
 
     <!-- 提示詞預覽 -->
-    <div class="preview-box bg-white p-4 rounded-xl mb-4 shadow-sm">
+    <div class="preview-box p-4 rounded-xl mb-4">
       <div class="flex justify-between items-center mb-2">
         <h3 class="text-sm font-semibold text-gray-700">
           {{ t('workspace.preview') }}
@@ -393,34 +393,70 @@ watch(() => props.selectedTemplate, () => {
 </script>
 
 <style scoped>
+.modern-panel {
+  background: linear-gradient(to bottom, #ffffff, #fafbfc);
+  border: 1px solid #e8eaed;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.link-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.25);
+  transition: all 0.3s ease;
+}
+
+.link-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
+}
+
 .prompt-editor {
-  border: 2px solid #e6f2ff;
+  background: #ffffff;
+  border: 1px solid #e8eaed;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
 .preview-box {
-  border: 2px dashed #409eff;
+  background: #ffffff;
+  border: 1px solid #e8eaed;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
 .preview-textarea :deep(.el-textarea__inner) {
   font-family: 'Courier New', monospace;
   font-size: 14px;
   line-height: 1.6;
-  background-color: #f9fafb;
-  border: 1px solid #e5e7eb;
+  background-color: #fafbfc;
+  border: 1px solid #e8eaed;
   border-radius: 8px;
   padding: 12px;
+  transition: all 0.3s ease;
 }
 
 .preview-textarea :deep(.el-textarea__inner):focus {
   background-color: #ffffff;
-  border-color: #409eff;
-  box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.1);
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .preview-content {
   white-space: pre-wrap;
   word-wrap: break-word;
   font-family: 'Courier New', monospace;
+  background-color: #fafbfc;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #e8eaed;
 }
 
 .rich-content {
@@ -436,16 +472,26 @@ watch(() => props.selectedTemplate, () => {
 .rich-content :deep(.cute-select:hover),
 .rich-content :deep(.cute-input:hover) {
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
 .history-section::-webkit-scrollbar {
   height: 6px;
 }
 
-.history-section::-webkit-scrollbar-thumb {
-  background: #409eff;
+.history-section::-webkit-scrollbar-track {
+  background: #f5f5f5;
   border-radius: 3px;
+}
+
+.history-section::-webkit-scrollbar-thumb {
+  background: linear-gradient(to right, #667eea, #764ba2);
+  border-radius: 3px;
+  transition: background 0.3s ease;
+}
+
+.history-section::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to right, #5568d3, #6a42a0);
 }
 
 .result-area {

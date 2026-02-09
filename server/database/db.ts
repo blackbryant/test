@@ -1,4 +1,5 @@
-import initSqlJs, { Database } from 'sql.js'
+import initSqlJs from 'sql.js'
+import type { Database } from 'sql.js'
 import { join } from 'path'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 
@@ -102,7 +103,7 @@ async function initTables(db: Database) {
 
   // 插入預設數據（如果表為空且環境變數允許）
   const templateResult = db.exec('SELECT COUNT(*) as count FROM templates')
-  const templateCount = templateResult.length > 0 ? templateResult[0].values[0][0] : 0
+  const templateCount = templateResult.length > 0 && templateResult[0]?.values[0]?.[0] ? templateResult[0].values[0][0] : 0
   
   // 透過環境變數控制是否載入預設資料
   // LOAD_DEFAULT_DATA=false 可以禁用預設資料載入
@@ -173,7 +174,7 @@ async function initTables(db: Database) {
   }
 
   const vocabResult = db.exec('SELECT COUNT(*) as count FROM vocabulary')
-  const vocabCount = vocabResult.length > 0 ? vocabResult[0].values[0][0] : 0
+  const vocabCount = vocabResult.length > 0 && vocabResult[0]?.values[0]?.[0] ? vocabResult[0].values[0][0] : 0
   
   if (vocabCount === 0 && shouldLoadDefaults) {
     // 插入預設詞庫

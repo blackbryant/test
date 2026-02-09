@@ -56,6 +56,7 @@
           <VocabularyPanel
             :vocabulary-list="vocabularyList"
             @update-vocabulary="loadVocabulary"
+            @close-sidebar="toggleVocabularyPanel"
           />
         </div>
       </transition>

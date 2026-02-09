@@ -1,47 +1,42 @@
 <template>
-  <div class="section-card">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-xl font-bold text-gray-800">
+  <div class="section-card modern-panel">
+    <div class="panel-header mb-4">
+      <h2 class="text-xl font-bold text-gray-700">
         {{ t('template.title') }}
       </h2>
       <div class="flex gap-2">
         <el-button
-          circle
+          type="primary"
           size="small"
-          @click="isVisible = !isVisible"
-          :type="isVisible ? 'primary' : 'default'"
+          @click="addNewTemplate"
+          class="add-template-btn"
         >
-          <el-icon><component :is="isVisible ? 'View' : 'Hide'" /></el-icon>
+          <el-icon><Plus /></el-icon>
+          <span class="ml-1">新增樣板</span>
         </el-button>
         <el-button
-          circle
           size="small"
           @click="showCategoryDialog = true"
+          class="icon-btn"
         >
           <el-icon><Setting /></el-icon>
-        </el-button>
-        <el-button
-          circle
-          size="small"
-          type="primary"
-          @click="showApiDialog = true"
-        >
-          <el-icon><Key /></el-icon>
         </el-button>
       </div>
     </div>
 
     <!-- 分類標籤 -->
-    <div v-show="isVisible" class="mb-4">
+    <div class="mb-4">
       <div class="flex flex-wrap gap-2">
         <div
           v-for="category in categories"
           :key="category.id"
-          class="rounded-tag cursor-pointer transition-all"
+          class="category-tag"
+          :class="{ 'category-tag-active': selectedCategory === category.name }"
           :style="{
-            backgroundColor: selectedCategory === category.name ? category.color : `${category.color}33`,
-            color: selectedCategory === category.name ? 'white' : category.color,
-            fontWeight: selectedCategory === category.name ? 'bold' : 'normal'
+            '--category-color': category.color,
+            backgroundColor: selectedCategory === category.name ? category.color : `${category.color}15`,
+            color: selectedCategory === category.name ? '#ffffff' : category.color,
+            borderColor: category.color
           }"
           @click="selectCategory(category.name)"
         >
@@ -51,54 +46,42 @@
     </div>
 
     <!-- 搜尋框 -->
-    <div v-show="isVisible" class="mb-4">
+    <div class="mb-4">
       <el-input
         v-model="searchQuery"
         placeholder="搜尋樣板..."
         clearable
         prefix-icon="Search"
+        class="search-input"
       />
     </div>
 
     <!-- 樣板列表 -->
-    <div v-show="isVisible" class="template-list space-y-2 max-h-[600px] overflow-y-auto">
+    <div class="template-list space-y-3 max-h-[600px] overflow-y-auto pr-2">
       <div
         v-for="template in filteredTemplates"
         :key="template.id"
-        class="template-item p-3 border-2 rounded-lg cursor-pointer transition-all "
-        :class="{
-          'border-blue-500 bg-blue-50': selectedTemplateId === template.id,
-          'border-gray-200 hover:border-blue-300': selectedTemplateId !== template.id
-        }"
+        class="template-card"
+        :class="{ 'template-card-active': selectedTemplateId === template.id }"
         @click="selectTemplate(template)"
       >
-        <div class="flex justify-between items-start">
-          <h3 class="font-semibold text-gray-800">{{ template.name }}</h3>
+        <div class="flex justify-between items-start mb-2">
+          <h3 class="font-medium text-gray-700 flex-1">{{ template.name }}</h3>
           <el-button
-            link
+            text
             size="small"
-            type="primary"
             @click.stop="editTemplate(template)"
+            class="edit-btn"
           >
             <el-icon><Edit /></el-icon>
+            <span class="ml-1">編輯</span>
           </el-button>
         </div>
         <p
-          class="text-sm text-gray-600 mt-2"
+          class="text-sm text-gray-500 leading-relaxed"
           v-html="formatTemplateContent(template.content)"
         ></p>
       </div>
-      
-      <!-- 新增樣板按鈕 -->
-      <el-button
-        class="w-full"
-        type="primary"
-        plain
-        @click="addNewTemplate"
-      >
-        <el-icon><Plus /></el-icon>
-        {{ t('template.editTemplate') }}
-      </el-button>
     </div>
 
     <!-- 分類設定對話框 -->
@@ -329,7 +312,7 @@
 </template>
 
 <script setup lang="ts">
-import { Setting, Key, Edit, Plus, View, Hide, Search } from '@element-plus/icons-vue'
+import { Setting, Key, Edit, Plus, Search } from '@element-plus/icons-vue'
 import type { Template, Category } from '~/types'
 import type { UploadUserFile } from 'element-plus'
 
@@ -351,7 +334,6 @@ const emit = defineEmits<{
   deleteCategory: [categoryId: number]
 }>()
 
-const isVisible = ref(true)
 const searchQuery = ref('')
 const selectedCategory = ref<string>('全部')
 const selectedTemplateId = ref<number | null>(null)
@@ -632,58 +614,170 @@ const loadAvailableVocabularyKeys = async () => {
 </script>
 
 <style scoped>
+.modern-panel {
+  background: linear-gradient(to bottom, #ffffff, #fafbfc);
+  border: 1px solid #e8eaed;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.add-template-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.25);
+  transition: all 0.3s ease;
+}
+
+.add-template-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
+}
+
+.icon-btn {
+  border: 1px solid #e8eaed;
+  background: #ffffff;
+  color: #5f6368;
+  transition: all 0.2s ease;
+}
+
+.icon-btn:hover {
+  background: #f8f9fa;
+  border-color: #dadce0;
+}
+
+.category-tag {
+  padding: 6px 16px;
+  border-radius: 16px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  border: 1.5px solid;
+  font-weight: 500;
+  backdrop-filter: blur(10px);
+}
+
+.category-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.category-tag-active {
+  font-weight: 600;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+}
+
+.search-input :deep(.el-input__wrapper) {
+  border-radius: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e8eaed;
+  transition: all 0.3s ease;
+}
+
+.search-input :deep(.el-input__wrapper:hover) {
+  border-color: #c6c9cc;
+}
+
+.search-input :deep(.el-input__wrapper.is-focus) {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.template-card {
+  padding: 16px;
+  border: 1px solid #e8eaed;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  background: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+.template-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 3px;
+  height: 100%;
+  background: linear-gradient(to bottom, #667eea, #764ba2);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.template-card:hover {
+  border-color: #c6c9cc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+.template-card:hover::before {
+  opacity: 1;
+}
+
+.template-card-active {
+  border-color: #667eea;
+  background: linear-gradient(to right, #f7f8ff, #ffffff);
+  box-shadow: 0 2px 12px rgba(102, 126, 234, 0.15);
+}
+
+.template-card-active::before {
+  opacity: 1;
+}
+
+.edit-btn {
+  color: #667eea;
+  padding: 4px 12px;
+  transition: all 0.2s ease;
+}
+
+.edit-btn:hover {
+  background: #f0f3ff;
+  color: #5568d3;
+}
+
 .template-list::-webkit-scrollbar {
   width: 6px;
 }
 
-.template-list::-webkit-scrollbar-thumb {
-  background: #409eff;
+.template-list::-webkit-scrollbar-track {
+  background: #f5f5f5;
   border-radius: 3px;
 }
 
-.template-item {
-  animation: slideIn 0.3s ease-out;
+.template-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #667eea, #764ba2);
+  border-radius: 3px;
+  transition: background 0.3s ease;
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+.template-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #5568d3, #6a42a0);
 }
 
 code {
-  background: #f0f7ff;
-  padding: 2px 6px;
+  background: #f0f3ff;
+  padding: 2px 8px;
   border-radius: 4px;
   font-family: 'Courier New', monospace;
   font-size: 12px;
-  color: #409eff;
+  color: #667eea;
+  font-weight: 500;
 }
 
 .template-mapping-item {
-    transition: all 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .template-mapping-item:hover {
   background-color: #f9fafb;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.rounded-tag {
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 14px;
-  transition: all 0.3s ease;
-  border: 2px solid transparent;
-}
-
-.rounded-tag:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 </style>
