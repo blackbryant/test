@@ -88,12 +88,16 @@
           {{ t('workspace.copy') }}
         </el-button>
       </div>
-      <div class="preview-content p-3 bg-gray-50 rounded-lg text-gray-700 min-h-[80px]">
-        {{ finalPrompt }}
-      </div>
+      <el-input
+        v-model="editablePrompt"
+        type="textarea"
+        :rows="6"
+        placeholder="提示詞預覽（可編輯）"
+        class="preview-textarea"
+      />
     </div>
 
-    <!-- 生成按鈕 -->
+    <!-- 生成按鈕 
     <el-button
       type="primary"
       size="large"
@@ -103,6 +107,7 @@
     >
       <span class="text-lg">🎨 {{ t('workspace.generate') }}</span>
     </el-button>
+    -->
 
     <!-- 功能顯示區 -->
     <div v-if="generatedImageUrl" class="result-area bg-white p-4 rounded-xl mb-4 shadow-sm">
@@ -168,6 +173,7 @@ const mainDescription = ref('')
 const isGenerating = ref(false)
 const generatedImageUrl = ref('')
 const templateParams = ref<Record<string, string>>({})
+const editablePrompt = ref('')
 
 // 計算最終提示詞
 const finalPrompt = computed(() => {
@@ -189,6 +195,11 @@ const finalPrompt = computed(() => {
   return prompt
 })
 
+// 監聽 finalPrompt 變化，同步到可編輯欄位
+watch(finalPrompt, (newValue) => {
+  editablePrompt.value = newValue
+}, { immediate: true })
+
 // 渲染樣板並插入下拉選單
 const renderTemplateWithSelects = () => {
   if (!props.selectedTemplate) return ''
@@ -201,34 +212,38 @@ const renderTemplateWithSelects = () => {
   
   matches.forEach(match => {
     const key = match[1]
+    if (!key) return
+    
     const vocab = props.vocabularyList.find(v => v.key === key)
     
     if (vocab && vocab.options.length > 0) {
       // 初始化參數值
       if (!templateParams.value[key]) {
-        templateParams.value[key] = vocab.options[0]
+        templateParams.value[key] = vocab.options[0] || ''
       }
       
       // 創建選擇框的 HTML ID
       const selectId = `select-${key}`
+      const currentValue = templateParams.value[key] || ''
       const replacement = `<span class="inline-select-wrapper">
         <select
           id="${selectId}"
           class="cute-select px-3 py-1 border-2 border-blue-300 rounded-full bg-white text-blue-600 font-semibold cursor-pointer hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           onchange="window.updateTemplateParam('${key}', this.value)"
         >
-          ${vocab.options.map(opt => `<option value="${opt}" ${templateParams.value[key] === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+          ${vocab.options.map(opt => `<option value="${opt}" ${currentValue === opt ? 'selected' : ''}>${opt}</option>`).join('')}
         </select>
       </span>`
       
       content = content.replace(match[0], replacement)
     } else {
       // 沒有對應詞庫，顯示為可編輯輸入框
+      const currentValue = templateParams.value[key] || ''
       const replacement = `<span class="inline-input-wrapper">
         <input
           type="text"
           class="cute-input px-3 py-1 border-2 border-blue-300 rounded-full bg-white text-blue-600 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value="${templateParams.value[key] || ''}"
+          value="${currentValue}"
           placeholder="${key}"
           onchange="window.updateTemplateParam('${key}', this.value)"
         />
@@ -242,15 +257,18 @@ const renderTemplateWithSelects = () => {
 }
 
 // 全局更新參數函數
-if (process.client) {
+onMounted(() => {
   (window as any).updateTemplateParam = (key: string, value: string) => {
     templateParams.value[key] = value
   }
-}
+})
 
 // 複製提示詞（包含圖片）
 const copyPrompt = async () => {
   try {
+    // 使用編輯後的提示詞
+    const promptToCopy = editablePrompt.value || finalPrompt.value
+    
     // 如果有圖片，嘗試複製 HTML 格式（文字+圖片）
     if (props.selectedTemplate?.images && props.selectedTemplate.images.length > 0) {
       try {
@@ -258,7 +276,7 @@ const copyPrompt = async () => {
         let htmlContent = `<div style="font-family: Arial, sans-serif;">`
         
         // 添加提示詞文字
-        htmlContent += `<p style="margin-bottom: 10px; white-space: pre-wrap;">${finalPrompt.value.replace(/\n/g, '<br>')}</p>`
+        htmlContent += `<p style="margin-bottom: 10px; white-space: pre-wrap;">${promptToCopy.replace(/\n/g, '<br>')}</p>`
         
         // 添加圖片
         htmlContent += `<div style="margin-top: 10px;">`
@@ -270,7 +288,7 @@ const copyPrompt = async () => {
         // 使用 ClipboardItem 複製 HTML 和純文字
         const items: Record<string, Blob> = {
           'text/html': new Blob([htmlContent], { type: 'text/html' }),
-          'text/plain': new Blob([finalPrompt.value], { type: 'text/plain' })
+          'text/plain': new Blob([promptToCopy], { type: 'text/plain' })
         }
         
         await navigator.clipboard.write([new ClipboardItem(items)])
@@ -278,13 +296,13 @@ const copyPrompt = async () => {
       } catch (error) {
         // 降級：只複製文字和圖片連結
         console.warn('HTML 複製失敗，使用降級方案:', error)
-        const textWithLinks = finalPrompt.value + '\n\n參考圖片:\n' + props.selectedTemplate.images.join('\n')
+        const textWithLinks = promptToCopy + '\n\n參考圖片:\n' + props.selectedTemplate.images.join('\n')
         await navigator.clipboard.writeText(textWithLinks)
         ElMessage.success('已複製提示詞和圖片連結到剪貼簿')
       }
     } else {
       // 沒有圖片，只複製文字
-      await navigator.clipboard.writeText(finalPrompt.value)
+      await navigator.clipboard.writeText(promptToCopy)
       ElMessage.success('已複製到剪貼簿')
     }
   } catch (error) {
@@ -295,7 +313,9 @@ const copyPrompt = async () => {
 
 // 生成圖片
 const generate = async () => {
-  if (!finalPrompt.value) {
+  const promptToUse = editablePrompt.value || finalPrompt.value
+  
+  if (!promptToUse) {
     ElMessage.warning('請先選擇樣板並填寫內容')
     return
   }
@@ -303,7 +323,7 @@ const generate = async () => {
   isGenerating.value = true
   
   // 模擬生成過程
-  console.log('生成提示詞:', finalPrompt.value)
+  console.log('生成提示詞:', promptToUse)
   
   setTimeout(() => {
     // 使用 placeholder 圖片
@@ -312,7 +332,7 @@ const generate = async () => {
     
     // 發送生成事件
     emit('generate', {
-      prompt: finalPrompt.value,
+      prompt: promptToUse,
       imageUrl
     })
     
@@ -323,21 +343,25 @@ const generate = async () => {
 
 // 連結到 Gemini
 const linkToGemini = () => {
-  if (!finalPrompt.value) {
+  const promptToUse = editablePrompt.value || finalPrompt.value
+  
+  if (!promptToUse) {
     ElMessage.warning('請先填寫提示詞')
     return
   }
-  const url = `https://gemini.google.com/?q=${encodeURIComponent(finalPrompt.value)}`
+  const url = `https://gemini.google.com/?q=${encodeURIComponent(promptToUse)}`
   window.open(url, '_blank')
 }
 
 // 連結到 ChatGPT
 const linkToChatGPT = () => {
-  if (!finalPrompt.value) {
+  const promptToUse = editablePrompt.value || finalPrompt.value
+  
+  if (!promptToUse) {
     ElMessage.warning('請先填寫提示詞')
     return
   }
-  const url = `https://chatgpt.com/?prompt=${encodeURIComponent(finalPrompt.value)}`
+  const url = `https://chatgpt.com/?prompt=${encodeURIComponent(promptToUse)}`
   window.open(url, '_blank')
 }
 
@@ -364,6 +388,7 @@ watch(() => props.selectedTemplate, () => {
   templateParams.value = {}
   mainDescription.value = ''
   generatedImageUrl.value = ''
+  editablePrompt.value = ''
 })
 </script>
 
@@ -374,6 +399,22 @@ watch(() => props.selectedTemplate, () => {
 
 .preview-box {
   border: 2px dashed #409eff;
+}
+
+.preview-textarea :deep(.el-textarea__inner) {
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.preview-textarea :deep(.el-textarea__inner):focus {
+  background-color: #ffffff;
+  border-color: #409eff;
+  box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.1);
 }
 
 .preview-content {

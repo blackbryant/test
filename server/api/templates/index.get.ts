@@ -1,19 +1,30 @@
 import { getDatabase } from '~/server/database/db'
 
-export default defineEventHandler((event) => {
-  const db = getDatabase()
+export default defineEventHandler(async (event) => {
+  const db = await getDatabase()
   
-  const templates = db.prepare(`
-    SELECT * FROM templates ORDER BY updated_at DESC
-  `).all()
+  const result = db.exec('SELECT * FROM templates ORDER BY updated_at DESC')
+  
+  if (result.length === 0 || !result[0].values.length) {
+    return []
+  }
 
-  return templates.map((row: any) => ({
-    id: row.id,
-    category: row.category,
-    name: row.name,
-    content: row.content,
-    images: row.images ? JSON.parse(row.images) : [],
-    createdAt: row.created_at,
-    updatedAt: row.updated_at
-  }))
+  const columns = result[0].columns
+  const values = result[0].values
+
+  return values.map((row: any[]) => {
+    const obj: any = {}
+    columns.forEach((col, i) => {
+      obj[col] = row[i]
+    })
+    return {
+      id: obj.id,
+      category: obj.category,
+      name: obj.name,
+      content: obj.content,
+      images: obj.images ? JSON.parse(obj.images) : [],
+      createdAt: obj.created_at,
+      updatedAt: obj.updated_at
+    }
+  })
 })

@@ -1,7 +1,7 @@
 {
   "app": {
-    "title": "Nano Banana Studio",
-    "subtitle": "AI 圖片生成平台"
+    "title": "提示詞工具",
+    "subtitle": "AI 提示詞管理"
   },
   "nav": {
     "home": "首頁",
@@ -23,7 +23,7 @@
   },
   "workspace": {
     "title": "核心作業區",
-    "promptInput": "提示詞輸入",
+    "promptInput": "樣板輸入",
     "mainDescription": "主要敘述",
     "preview": "提示詞預覽",
     "copy": "複製",

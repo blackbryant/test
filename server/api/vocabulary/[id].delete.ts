@@ -1,11 +1,11 @@
-import { getDatabase } from '~/server/database/db'
+import { getDatabase, saveDatabase } from '~/server/database/db'
 
-export default defineEventHandler((event) => {
-  const db = getDatabase()
+export default defineEventHandler(async (event) => {
+  const db = await getDatabase()
   const id = getRouterParam(event, 'id')
 
-  const stmt = db.prepare('DELETE FROM vocabulary WHERE id = ?')
-  stmt.run(id)
+  db.run('DELETE FROM vocabulary WHERE id = ?', [id])
+  saveDatabase()
 
   return { success: true }
 })

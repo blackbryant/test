@@ -5,9 +5,9 @@
       <div class="bg-white rounded-xl shadow-lg p-6 flex justify-between items-center">
         <div>
           <h1 class="text-4xl font-bold text-brand-blue">
-            Nano Banana Studio
+            {{ $t('app.title') }}
           </h1>
-          <p class="text-gray-600 mt-2">AI 圖片生成平台</p>
+          <p class="text-gray-600 mt-2">{{ $t('app.subtitle') }}</p>
         </div>
         <div class="flex gap-4 items-center">
           <el-select v-model="currentLocale" @change="changeLocale" style="width: 120px">
@@ -34,8 +34,11 @@
         />
       </div>
 
-      <!-- 中間：核心作業區 (6 columns) -->
-      <div class="col-span-12 md:col-span-6">
+      <!-- 中間：核心作業區 (動態調整寬度) -->
+      <div 
+        class="col-span-12 transition-all duration-300"
+        :class="showVocabularyPanel ? 'md:col-span-6' : 'md:col-span-9'"
+      >
         <WorkspacePanel
           :selected-template="selectedTemplate"
           :vocabulary-list="vocabularyList"
@@ -44,22 +47,49 @@
         />
       </div>
 
-      <!-- 右側：詞庫設定區 (3 columns) -->
-      <div class="col-span-12 md:col-span-3">
-        <VocabularyPanel
-          :vocabulary-list="vocabularyList"
-          @update-vocabulary="loadVocabulary"
-        />
-      </div>
+      <!-- 右側：詞庫設定區 (3 columns，可隱藏) -->
+      <transition name="slide-fade">
+        <div 
+          v-show="showVocabularyPanel"
+          class="col-span-12 md:col-span-3"
+        >
+          <VocabularyPanel
+            :vocabulary-list="vocabularyList"
+            @update-vocabulary="loadVocabulary"
+          />
+        </div>
+      </transition>
     </div>
+
+    <!-- 懸浮按鈕：切換詞庫面板顯示 -->
+    <el-button
+      circle
+      size="large"
+      :type="showVocabularyPanel ? 'primary' : 'default'"
+      class="fixed bottom-6 right-6 shadow-lg z-50"
+      @click="toggleVocabularyPanel"
+    >
+      <el-icon><component :is="showVocabularyPanel ? 'Hide' : 'View'" /></el-icon>
+    </el-button>
   </div>
 </template>
 
 <script setup lang="ts">
+import { View, Hide } from '@element-plus/icons-vue'
 import type { Template, Category, VocabularyItem, GenerationHistory } from '~/types'
 
 const { locale } = useI18n()
-const currentLocale = ref(locale.value)
+const currentLocale = ref<string>(locale.value)
+
+// 詞庫面板顯示狀態
+const showVocabularyPanel = ref(true)
+
+// 切換詞庫面板
+const toggleVocabularyPanel = () => {
+  showVocabularyPanel.value = !showVocabularyPanel.value
+  // 保存狀態到 localStorage
+  localStorage.setItem('showVocabularyPanel', String(showVocabularyPanel.value))
+}
 
 // 分類數據
 const categories = ref<Category[]>([
@@ -83,7 +113,7 @@ const generationHistory = ref<GenerationHistory[]>([])
 
 // 切換語言
 const changeLocale = (newLocale: string) => {
-  locale.value = newLocale
+  locale.value = newLocale as 'zh' | 'en'
   localStorage.setItem('locale', newLocale)
 }
 
@@ -216,6 +246,12 @@ onMounted(() => {
     }
   }
   
+  // 載入詞庫面板顯示狀態
+  const savedShowVocabulary = localStorage.getItem('showVocabularyPanel')
+  if (savedShowVocabulary !== null) {
+    showVocabularyPanel.value = savedShowVocabulary === 'true'
+  }
+  
   loadTemplates()
   loadVocabulary()
   loadHistory()
@@ -224,7 +260,7 @@ onMounted(() => {
   const savedLocale = localStorage.getItem('locale')
   if (savedLocale) {
     currentLocale.value = savedLocale
-    locale.value = savedLocale
+    locale.value = savedLocale as 'zh' | 'en'
   }
 })
 </script>
@@ -243,5 +279,24 @@ onMounted(() => {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* 詞庫面板滑入滑出動畫 */
+.slide-fade-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.slide-fade-leave-active {
+  transition: all 0.3s ease-in;
+}
+
+.slide-fade-enter-from {
+  transform: translateX(20px);
+  opacity: 0;
+}
+
+.slide-fade-leave-to {
+  transform: translateX(20px);
+  opacity: 0;
 }
 </style>
