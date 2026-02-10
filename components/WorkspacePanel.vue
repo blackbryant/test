@@ -263,51 +263,38 @@ onMounted(() => {
   }
 })
 
-// 複製提示詞（包含圖片）
+// 複製提示詞文字框內容
 const copyPrompt = async () => {
   try {
-    // 使用編輯後的提示詞
-    const promptToCopy = editablePrompt.value || finalPrompt.value
+    // 直接複製可編輯文字框中的內容
+    const textToCopy = editablePrompt.value || finalPrompt.value
     
-    // 如果有圖片，嘗試複製 HTML 格式（文字+圖片）
-    if (props.selectedTemplate?.images && props.selectedTemplate.images.length > 0) {
-      try {
-        // 建立包含文字和圖片的 HTML 內容
-        let htmlContent = `<div style="font-family: Arial, sans-serif;">`
-        
-        // 添加提示詞文字
-        htmlContent += `<p style="margin-bottom: 10px; white-space: pre-wrap;">${promptToCopy.replace(/\n/g, '<br>')}</p>`
-        
-        // 添加圖片
-        htmlContent += `<div style="margin-top: 10px;">`
-        for (const imageUrl of props.selectedTemplate.images) {
-          htmlContent += `<img src="${imageUrl}" style="max-width: 500px; margin: 5px;" />`
-        }
-        htmlContent += `</div></div>`
-        
-        // 使用 ClipboardItem 複製 HTML 和純文字
-        const items: Record<string, Blob> = {
-          'text/html': new Blob([htmlContent], { type: 'text/html' }),
-          'text/plain': new Blob([promptToCopy], { type: 'text/plain' })
-        }
-        
-        await navigator.clipboard.write([new ClipboardItem(items)])
-        ElMessage.success('已複製提示詞和圖片到剪貼簿')
-      } catch (error) {
-        // 降級：只複製文字和圖片連結
-        console.warn('HTML 複製失敗，使用降級方案:', error)
-        const textWithLinks = promptToCopy + '\n\n參考圖片:\n' + props.selectedTemplate.images.join('\n')
-        await navigator.clipboard.writeText(textWithLinks)
-        ElMessage.success('已複製提示詞和圖片連結到剪貼簿')
-      }
-    } else {
-      // 沒有圖片，只複製文字
-      await navigator.clipboard.writeText(promptToCopy)
-      ElMessage.success('已複製到剪貼簿')
+    if (!textToCopy) {
+      ElMessage.warning('沒有可複製的內容')
+      return
     }
+    
+    // 使用簡單的文字複製
+    await navigator.clipboard.writeText(textToCopy)
+    ElMessage.success('已複製到剪貼簿')
   } catch (error) {
     console.error('複製失敗:', error)
-    ElMessage.error('複製失敗')
+    
+    // 降級方案：使用傳統方法
+    try {
+      const textArea = document.createElement('textarea')
+      textArea.value = editablePrompt.value || finalPrompt.value
+      textArea.style.position = 'fixed'
+      textArea.style.left = '-999999px'
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textArea)
+      ElMessage.success('已複製到剪貼簿')
+    } catch (fallbackError) {
+      console.error('降級複製也失敗:', fallbackError)
+      ElMessage.error('複製失敗，請手動選擇文字複製')
+    }
   }
 }
 
@@ -430,6 +417,10 @@ watch(() => props.selectedTemplate, () => {
   background: #ffffff;
   border: 1px solid #e8eaed;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
 }
 
 .preview-textarea :deep(.el-textarea__inner) {
@@ -441,6 +432,11 @@ watch(() => props.selectedTemplate, () => {
   border-radius: 8px;
   padding: 12px;
   transition: all 0.3s ease;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  cursor: text;
 }
 
 .preview-textarea :deep(.el-textarea__inner):focus {
